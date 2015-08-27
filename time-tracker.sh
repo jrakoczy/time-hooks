@@ -3,30 +3,31 @@
 # Regexps
 hours_regex="([0-9]+)"
 minutes_regex="[0-6][0-9]|[1-9]" # Both double- and single-digit values are valid
-time_regex="^([[:space:]]*$hours_regex[[:space:]]*h)?[[:space:]]*($minutes_regex)[[:space:]]*m[[:space:]]*$"
+time_regex="^([[:space:]]*$hours_regex[[:space:]]*h)?[[:space:]]*($minutes_regex)[[:space:]]*min[[:space:]]*$"
 
 committers_regex="^([[:space:]]*([[:alnum:]])[[:space:]]*)+$"
 
 # Functions
 get_time(){
-    printf "\nEnter time spent separating time units with h (hours) and m (minutes)."
+    printf "\nEnter time spent separating time units with h (hours) and min (minutes)."
     printf "\nWhitespaces are omitted."
-    printf "\nEg:  1 h 30 m"
+    printf "\nEg:  1 h 30 min"
     printf "\nTime spent: " 
     read time_spent
 
     [[  "$time_spent" =~ $time_regex ]] || return 1
+    time_spent="$(printf "%s" "$time_spent" | sed -e 's/\s\{2,\}/ /g')"
 }
 
 get_committers() {
     printf "\nEnter (a) handle(s) of committer(s) working on the commit."
     printf "\nIn case there were more than one committer separate handles with whitespaces."
     printf "\nEg: jondoe marthastew" 
-
     printf "\nCommitters: "
     read committers
 
     [[ "$committers" =~ $committers_regex ]] || return 1
+    committers="$(printf "%s" "$committers" | sed -e 's/\s\{2,\}/ /g')"
 }
 
 yesno() {   
