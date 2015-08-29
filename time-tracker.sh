@@ -5,7 +5,7 @@ hours_regex="([0-9]+)"
 minutes_regex="[0-6][0-9]|[1-9]" # Both double- and single-digit values are valid
 time_regex="^([[:space:]]*$hours_regex[[:space:]]*h)?[[:space:]]*($minutes_regex)[[:space:]]*min[[:space:]]*$"
 
-committers_regex="^([[:space:]]*([[:alnum:]])[[:space:]]*)+$"
+committers_regex="^([[:space:]]*[[:alnum:]]*[[:space:]]*)+$"
 
 # Functions
 get_time(){
