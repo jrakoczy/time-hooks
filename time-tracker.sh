@@ -1,4 +1,5 @@
 #!/bin/sh
+. ./auxiliary.sh
 
 # Regexps
 hours_regex="([0-9]+)"
@@ -30,25 +31,6 @@ get_committers() {
     committers="$(printf "%s" "$committers" | sed -e 's/\s\{2,\}/ /g')"
 }
 
-yesno() {   
-    while :
-    do
-        printf "%s" "$*" 
-        read decision
-
-        case "$decision" in
-            y|Y|Yes|yes|YES|'')
-                return 0
-                ;;
-            n|N|No|no|NO)
-                return 1
-                ;;
-            *)
-                printf "[ERROR] That doesn't seem like a possible choice."
-                ;;
-        esac
-    done
-}  
 
 # Main loop
 while :

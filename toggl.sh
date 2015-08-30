@@ -1,4 +1,5 @@
 #!/bin/sh
+. ./auxiliary.sh
 
 # Regexes
 hours_regex="[0-9]+"
@@ -8,10 +9,12 @@ time_regex="^Time spent:([[:space:]]*$hours_regex[[:space:]]*h)?[[:space:]]*$min
 committers_regex="^Committers:([[:space:]]*([[:alnum:]]*)[[:space:]]*)+$"
 
 # Get relevant lines
+#subject_line="$(git log -1 HEAD --pretty=format:%s)"
 #message_body="$(git log -1 HEAD --pretty=format:%b)"
 message_body="Time spent: 1h 20 min
-Committers: jon snow"
+Committers: jrakoczy"
 
+subject_line="Random commit message (time-zone)"
 time_line="$(printf "%s" "$message_body" | egrep "$time_regex")"
 committers_line="$(printf "%s" "$message_body" | egrep "$committers_regex")"
 
@@ -27,9 +30,46 @@ seconds="$(( hours * 3600 + minutes * 60 ))"
 # Get Toggl API keys
 committers="$(printf "%s" "$committers_line" | sed "s/Committers:[[:space:]]*//")"
 handles_array=(${committers})
-it="0"
+
+send_request() {
+    local header="Content-Type: application/json"
+    local request_url="https://www.toggl.com/api/v8/time_entries"
+    local auth="$1:api_token"
+    
+    # Data
+    local start_time="$(date +"%FT%T+02:00" --date "-$seconds sec")"
+    echo "$start_time"
+    local data="
+                {
+                    \"time_entry\":
+                    {
+                        \"description\":\"$subject_line\",
+                        \"duration\":$seconds,
+                        \"start\":\"$start_time\",
+                        \"pid\":11053327,
+                        \"created_with\":\"curl\"
+                    }
+                }"
+    curl -v -u "$auth" -H "$header" -d "$data" -X POST "$request_url" >/dev/null 2>&1 &&\
+    printf "Time entry added to the project." ||\
+    printf "[ERROR] Couldn't access Toggl API. Time entry hasn't been added."             
+}
+
+
 
 for handle in "${handles_array[@]}"
 do
-    api_keys["$it"]="$(git config --get toggl.key.$handle)"
+    api_key="$(git config --get toggl.key.$handle 2>/dev/null)"  
+    if [ ! "$api_key" ]
+    then 
+        printf "\n[ERROR] There's no API key for handle: %s" "$handle"
+        yesno_message="$(printf "\nWould you like to add a key to the handle? (Y/n): ")"
+        yesno "$yesno_message" || continue
+        printf "\nAPI key [$handle]: " 
+        read api_key 
+    fi
+
+    send_request "$api_key"
 done
+
+
