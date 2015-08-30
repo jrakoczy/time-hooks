@@ -14,7 +14,7 @@ committers_regex="^Committers:([[:space:]]*([[:alnum:]]*)[[:space:]]*)+$"
 message_body="Time spent: 1h 20 min
 Committers: jrakoczy"
 
-subject_line="Random commit message (time-zone)"
+subject_line="Final test"
 time_line="$(printf "%s" "$message_body" | egrep "$time_regex")"
 committers_line="$(printf "%s" "$message_body" | egrep "$committers_regex")"
 
@@ -31,6 +31,16 @@ seconds="$(( hours * 3600 + minutes * 60 ))"
 committers="$(printf "%s" "$committers_line" | sed "s/Committers:[[:space:]]*//")"
 handles_array=(${committers})
 
+project_id="$(git config --get toggl.pid 2>/dev/null)"  
+if [ ! "$project_id" ]
+then 
+    printf "\n[ERROR] A project id is not defined."
+    yesno_message="$(printf "\nWould you like to add a project id? (Y/n): ")"
+    yesno "$yesno_message" || { printf "Couldn't add a time entry."; exit 1; }
+    printf "\nProject id [$handle]: " 
+    read project_id
+fi
+
 send_request() {
     local header="Content-Type: application/json"
     local request_url="https://www.toggl.com/api/v8/time_entries"
@@ -46,15 +56,19 @@ send_request() {
                         \"description\":\"$subject_line\",
                         \"duration\":$seconds,
                         \"start\":\"$start_time\",
-                        \"pid\":11053327,
+                        \"pid\":$project_id,
                         \"created_with\":\"curl\"
                     }
                 }"
-    curl -v -u "$auth" -H "$header" -d "$data" -X POST "$request_url" >/dev/null 2>&1 &&\
-    printf "Time entry added to the project." ||\
-    printf "[ERROR] Couldn't access Toggl API. Time entry hasn't been added."             
+    
+    if curl -v -u "$auth" -H "$header" -d "$data" -X POST "$request_url" >/dev/null 2>&1
+    then
+        printf "Time entry added to the project." 
+    else
+        printf "[ERROR] Couldn't access Toggl API. Time entry hasn't been added."
+        exit 1
+    fi             
 }
-
 
 
 for handle in "${handles_array[@]}"
