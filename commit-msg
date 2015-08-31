@@ -1,14 +1,22 @@
 #!/bin/sh
 . ./auxiliary.sh
 
-# Regexps
-hours_regex="([0-9]+)"
+
+# Check if the script should be executed
+settings_turn="$(git config --get toggl.turn)"
+[ "$settings_turn" = "off" ] && exit 0
+[ "$settings_turn" != "on" ] && { printf "Git toggl settings cannot be determined."; exit 1; }
+
+
+# Define regexps
+hours_regex="[0-9]+"
 minutes_regex="[0-6][0-9]|[1-9]" # Both double- and single-digit values are valid
 time_regex="^([[:space:]]*$hours_regex[[:space:]]*h)?[[:space:]]*($minutes_regex)[[:space:]]*min[[:space:]]*$"
 
 committers_regex="^([[:space:]]*[[:alnum:]]*[[:space:]]*)+$"
 
-# Functions
+
+# Get user input 
 get_time(){
     printf "\nEnter time spent separating time units with h (hours) and min (minutes)."
     printf "\nWhitespaces are omitted."
@@ -33,6 +41,7 @@ get_committers() {
 
 
 # Main loop
+# Get time, get committers, validate submitted data.
 while :
 do     
     while : 
@@ -52,7 +61,9 @@ do
     
     if  yesno "$yesno_message"
     then
-        printf "${time_message}${committers_message}" >> $1 || printf "\n[ERROR] Couldn't append to the commit message."
-        break
+        printf "${time_message}${committers_message}" >> $1 ||\   # Append to a commit message
+        printf "\n[ERROR] Couldn't append to the commit message."
+       
+         break
     fi
 done       

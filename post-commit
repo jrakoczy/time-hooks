@@ -26,6 +26,7 @@ hours="$(printf "%s" "$time_line" | sed -E "s/[^0-9]*($hours_regex)[[:space:]]*h
 minutes="$(printf "%s" "$time_line" | sed -E "s/.*h[^0-9]*($minutes_regex)[[:space:]]*min.*/\1/")"
 seconds="$(( hours * 3600 + minutes * 60 ))"
 
+
 # Get project id
 project_id="$(git config --get toggl.pid 2>/dev/null)"  
 
