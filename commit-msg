@@ -1,6 +1,9 @@
 #!/bin/sh
-. ./auxiliary.sh
+d="$(cd "$(dirname "$0")"; pwd -P)"
+. "$d"/auxiliary.sh
 
+# Assign stdin to the keyboard
+exec < /dev/tty
 
 # Check if the script should be executed
 settings_turn="$(git config --get toggl.turn)"
@@ -61,8 +64,7 @@ do
     
     if  yesno "$yesno_message"
     then
-        printf "${time_message}${committers_message}" >> $1 ||\   # Append to a commit message
-        printf "\n[ERROR] Couldn't append to the commit message."
+        printf "${time_message}${committers_message}" >> $1 || printf "\n[ERROR] Couldn't append to the commit message."
        
          break
     fi
