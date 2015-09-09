@@ -1,5 +1,7 @@
 #!/bin/sh
-. ./auxiliary.sh
+d="$(cd "$(dirname "$0")"; pwd -P)"
+
+. "$d"/auxiliary.sh
 
 # Define regexes
 hours_regex="[0-9]+"
